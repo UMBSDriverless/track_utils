@@ -24,4 +24,4 @@ Usage:
 
 
 ## Results
-The generated tracks are saved in the ```track/``` directory 
+The generated tracks are saved in the ```tracks/``` directory 
