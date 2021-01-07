@@ -13,7 +13,7 @@ Highly customizable random track generation.
 
 Usage:
 
-```python generate.py [-s|--seed <seed>] [--npoints <complexity>] [--softness <Level of corner softnening, from (0, 100)>] [...]```
+```python generate.py [-s|--seed <seed>] [--npoints <complexity>] [--softness <corner softnening, from (0, 100)>] [...]```
 
 ## visualize.py
 Plot a generated track
