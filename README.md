@@ -21,3 +21,7 @@ Plot a generated track
 Usage:
 
 ```python visualize.py -t <track numpy file>```
+
+
+## Results
+The generated tracks are saved in the ```track/``` directory 
