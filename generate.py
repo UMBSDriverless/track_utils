@@ -10,7 +10,8 @@ activate_visualize = True
 
 track_dir = "tracks/"
 
-class colors:
+
+class Colors:
     OKGREEN = "\033[92m"
     INFO = "\033[93m"
     FAIL = "\033[91m"
@@ -21,7 +22,7 @@ description_str = "Procedural track generation using random Voronoi diagram."
 
 parser = argparse.ArgumentParser(description=description_str, formatter_class=argparse.RawTextHelpFormatter)
 parser.add_argument("-v", "--verbose", help="Set verbosity level.", action="count", default=0)
-parser.add_argument("--boundary", help="Specify the x and y values of the track boundary (default:  100 100).", nargs=2, type=int, default=[100, 100])
+parser.add_argument("--boundary", help="Specify the x and y values of the track boundary (default: 100 100).", nargs=2, type=int, default=[100, 100])
 parser.add_argument("--npoints", type=int, help="The number of sites in the Voronoi diagram (points that generate the diagram) (default: 70).", default=70)
 parser.add_argument("--softness", type=int, help="Percentage indicating the average smoothness of the corners (default: 66)", default=66)
 parser.add_argument("--mode", choices=["bfs", "hull"], default="hull",
@@ -60,11 +61,11 @@ def domains_checker():
 domains_checker()
 seed = args.seed
 i = -1
-while i != args.batch:
+while i < args.batch:
     track = Track(args.boundary, args.npoints, seed)  # 6928203095324602024
     if args.mode == "hull":
         perc = args.span / 100.
-    elif args.mode == "bfs":
+    else:
         perc = args.cover / 100.
     track.select(perc, method=args.mode)
     track.starting_line()
@@ -76,19 +77,16 @@ while i != args.batch:
             # temporary bad fix
             pass
     if args.verbose:
-        print(colors.INFO + "Generating track " + str(i + 1) + " with seed " + str(seed) + colors.CLOSE)
-    if i < args.batch:
-        try:
-            os.mkdir(track_dir)
-        except:
-            pass
-        file_name = track_dir + "track_" + str(seed) + ".npy"
-        track.store(file_name)
-        if activate_visualize:
-            os.system("visualize.py -t" + file_name)
-        seed = random.randrange(sys.maxsize)
-    else:
-        break
+        print(Colors.INFO + "Generating track " + str(i + 1) + " with seed " + str(seed) + Colors.CLOSE)
+    try:
+        os.mkdir(track_dir)
+    except:
+        print("Error occurred during creation of directory " + track_dir)
+    file_name = track_dir + "track_" + str(seed) + ".npy"
+    track.store(file_name)
+    if activate_visualize:
+        os.system("visualize.py -t" + file_name)
+    seed = random.randrange(sys.maxsize)
     i = i + 1
 
 
