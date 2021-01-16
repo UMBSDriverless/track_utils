@@ -42,53 +42,53 @@ def error_printer(description):
     exit()
 
 
-#  TODO complete the domain checks
-def domains_checker(args):
+def domains_checker():
+    if args.seed < 0:
+        error_printer("seed must be greater than 0")
     if args.softness < 1 or args.softness > 100:
-        error_printer("Softness must be between 1 and 100")
+        error_printer("softness must be between 1 and 100")
+    if args.npoints < 12:
+        error_printer("npoints must be greater than 12")
+    if args.cover < 1 or args.cover > 100:
+        error_printer("cover must be between 1 and 100")
+    if args.span < 1 or args.span > 100:
+        error_printer("span must be between 1 and 100")
+    if args.batch < 0:
+        error_printer("batch must be greater than -1")
 
 
-domains_checker(args)
+domains_checker()
 seed = args.seed
 i = -1
 while i != args.batch:
-
-    if len(args.boundary) == 2 and isinstance(args.npoints,int):
-        track = Track(args.boundary, args.npoints, seed) #6928203095324602024
-        if args.mode == "hull":
-            perc = args.span/100.
-        elif args.mode == "bfs":
-            perc = args.cover/100.
-        track.select(perc, method=args.mode)
-        track.starting_line()
-        min_radius = 0.3*args.softness/100.+0.1
-        for c in track.corners:
-            try:
-                track.round(c, args.verbose, min_radius = min_radius)
-            except ValueError:
-                #temporary bad fix
-                pass
-        if args.verbose:
-            print(colors.INFO + "Generating track " + str(i + 1) + " with seed " + str(seed) + colors.CLOSE)
-        if i < args.batch:
-            try:
-                os.mkdir(track_dir)
-            except:
-                pass
-            file_name = track_dir + "track_" + str(seed) + ".npy"
-            track.store(file_name)
-            if activate_visualize:
-                os.system("visualize.py -t" + file_name)
-            seed = random.randrange(sys.maxsize)
-        else:
-            break
-        i = i + 1
+    track = Track(args.boundary, args.npoints, seed)  # 6928203095324602024
+    if args.mode == "hull":
+        perc = args.span / 100.
+    elif args.mode == "bfs":
+        perc = args.cover / 100.
+    track.select(perc, method=args.mode)
+    track.starting_line()
+    min_radius = 0.3 * args.softness / 100. + 0.1
+    for c in track.corners:
+        try:
+            track.round(c, args.verbose, min_radius=min_radius)
+        except ValueError:
+            # temporary bad fix
+            pass
+    if args.verbose:
+        print(colors.INFO + "Generating track " + str(i + 1) + " with seed " + str(seed) + colors.CLOSE)
+    if i < args.batch:
+        try:
+            os.mkdir(track_dir)
+        except:
+            pass
+        file_name = track_dir + "track_" + str(seed) + ".npy"
+        track.store(file_name)
+        if activate_visualize:
+            os.system("visualize.py -t" + file_name)
+        seed = random.randrange(sys.maxsize)
     else:
-        print("Wrong arguments.")
         break
+    i = i + 1
 
-    #boundary x e y
-    #numero di punti
-    #percentuale di voronoi selezionata
-    #tondezza curve
-    #larghezza del tracciato
+
