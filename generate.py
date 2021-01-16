@@ -35,19 +35,30 @@ parser.add_argument("-b", "--batch", help="Number of tracks to generate and save
                     "The generated tracks will be stored in " + track_dir +" in numpy array format (default: disabled). ", default=0, type=int)
 
 args = parser.parse_args()
-i = -1
-if isinstance(args.seed, int):
-    seed = args.seed
 
+
+def error_printer(description):
+    print(description)
+    exit()
+
+
+#  TODO complete the domain checks
+def domains_checker(args):
+    if args.softness < 1 or args.softness > 100:
+        error_printer("Softness must be between 1 and 100")
+
+
+domains_checker(args)
+seed = args.seed
+i = -1
 while i != args.batch:
-    # TODO: aggiungere controlli sul dominio dei vari args
 
     if len(args.boundary) == 2 and isinstance(args.npoints,int):
         track = Track(args.boundary, args.npoints, seed) #6928203095324602024
         if args.mode == "hull":
             perc = args.span/100.
         elif args.mode == "bfs":
-            perc == args.cover/100.
+            perc = args.cover/100.
         track.select(perc, method=args.mode)
         track.starting_line()
         min_radius = 0.3*args.softness/100.+0.1
