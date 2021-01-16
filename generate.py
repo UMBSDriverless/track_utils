@@ -6,6 +6,8 @@ import os
 from datetime import datetime
 from src.voronoiTrack.generator.track import *
 
+activate_visualize = True
+
 track_dir = "tracks/"
 
 class colors:
@@ -13,7 +15,6 @@ class colors:
     INFO = "\033[93m"
     FAIL = "\033[91m"
     CLOSE = "\033[0m"
-
 
 
 description_str = "Procedural track generation using random Voronoi diagram."
@@ -63,7 +64,10 @@ while i != args.batch:
                 os.mkdir(track_dir)
             except:
                 pass
-            track.store(track_dir + "track_" + str(seed) + ".npy")
+            file_name = track_dir + "track_" + str(seed) + ".npy"
+            track.store(file_name)
+            if activate_visualize:
+                os.system("visualize.py -t" + file_name)
             seed = random.randrange(sys.maxsize)
         else:
             break
