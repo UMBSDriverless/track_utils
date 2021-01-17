@@ -3,21 +3,31 @@ import matplotlib.pyplot as plt
 import numpy as np
 import os
 
+
 def read_points(data):
-    xs = []
-    ys = []
-    for q in data:
-        xs.append(q[0])
-        ys.append(q[1])
-    return xs, ys
+    data_inner = data[0]
+    data_outer = data[1]
+    xi = []
+    yi = []
+    xo = []
+    yo = []
+    for q in data_inner:
+        xi.append(q[0])
+        yi.append(q[1])
+    for q in data_outer:
+        xo.append(q[0])
+        yo.append(q[1])
+    return xi, yi, xo, yo
+
 
 def plot(data, name, width):
-    xs, ys = read_points(data)
+    xi, yi, xo, yo = read_points(data)
     fig, axs = plt.subplots(1, 1, constrained_layout=True)
-    axs.plot(xs, ys, c="k", lw=width)
+    axs.plot(xi, yi, xo, yo, c="k", lw=width)
     plt.gca().set_aspect('equal', adjustable='box')
     fig.suptitle("name: " + str(name))
     plt.show()
+
 
 parser = argparse.ArgumentParser(description="Visualize a track previously stored in a file.")
 

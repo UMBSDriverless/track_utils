@@ -19,6 +19,7 @@ class Track:
     # corners = dequeue of obj corner
 
     def __init__(self, boundary, npoints, seed, verbose=False, scale=BOUNDARY_DEFAULT_SCALE):
+        self.track_points = []
         self.straights = deque()
         self.corners = deque()
         self.seed = seed
@@ -236,8 +237,7 @@ class Track:
         #     f.write(str(self.seed))
         #     f.write("\n")
         #     f.write(str())
-        track_points = np.array(self._track2points())
-        np.save(filename, track_points)
+        np.save(filename, self.track_points)
 
     def plot_track(self, width=4):
         plt.xlim(left=self.boundary._x_min(), right=self.boundary._x_max())
@@ -295,3 +295,24 @@ class Track:
         corner.arc_finish = T2
         corner.flagBlend()
         corner.roundify(v)
+
+    def double_line(self, track_width):
+        # TODO make this code efficient
+        initial_points = np.array(self._track2points())
+        inner_points = []
+        outer_points = []
+        ort_vector = [0, 0]
+        for i in range(len(initial_points)):
+            cp = initial_points[i]
+            if i > 0:
+                pp = initial_points[i - 1]
+            else:
+                pp = initial_points[-1]
+            x_vect = cp[0] - pp[0]
+            y_vect = cp[1] - pp[1]
+            modulo = np.float32(np.linalg.norm(cp - pp))
+            if modulo != 0:
+                ort_vector = [y_vect * track_width / modulo, - x_vect * track_width / modulo]
+            inner_points.append([cp[0] + ort_vector[0], cp[1] + ort_vector[1]])
+            outer_points.append([cp[0] - ort_vector[0], cp[1] - ort_vector[1]])
+        self.track_points = np.array([np.array(inner_points), np.array(outer_points)])
