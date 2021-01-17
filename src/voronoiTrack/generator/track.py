@@ -314,5 +314,5 @@ class Track:
             if modulo != 0:
                 ort_vector = [y_vect * track_width / modulo, - x_vect * track_width / modulo]
             inner_points.append([cp[0] + ort_vector[0], cp[1] + ort_vector[1]])
-            outer_points.append([cp[0] - ort_vector[0], cp[1] - ort_vector[1]])
+            outer_points.append([cp[0], cp[1]])
         self.track_points = np.array([np.array(inner_points), np.array(outer_points)])
