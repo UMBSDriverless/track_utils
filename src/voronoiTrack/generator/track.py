@@ -299,20 +299,63 @@ class Track:
     def double_line(self, track_width):
         # TODO make this code efficient
         initial_points = np.array(self._track2points())
-        inner_points = []
-        outer_points = []
-        ort_vector = [0, 0]
-        for i in range(len(initial_points)):
-            cp = initial_points[i]
+        while True:
+            inner_points = []
+            outer_points = []
+            in_maxy = 0
+            out_maxy = 0
+            for i in range(len(initial_points)):
+                cp = initial_points[i]
+                if i > 0:
+                    pp = initial_points[i - 1]
+                else:
+                    pp = initial_points[-1]
+                x_vect = cp[0] - pp[0]
+                y_vect = cp[1] - pp[1]
+                modulo = np.linalg.norm(cp - pp)
+                if modulo != 0:
+                    ort_vector = [- y_vect * track_width / modulo, x_vect * track_width / modulo]
+                    outer_points.append([cp[0] + ort_vector[0], cp[1] + ort_vector[1]])
+                    if cp[1] + ort_vector[1] > out_maxy:
+                        out_maxy = cp[1] + ort_vector[1]
+                    inner_points.append([cp[0], cp[1]])
+                    if cp[1] > in_maxy:
+                        in_maxy = cp[1]
+            if out_maxy > in_maxy:
+                break
+            track_width = track_width * -1
+        self.track_points = np.array(self.correct_mismatches(np.array(inner_points), np.array(outer_points)))
+        #self.track_points = np.array([np.array(inner_points), np.array(outer_points)])
+
+    def orientation(self, p, q, r):
+        val = ((q[1] - p[1]) * (r[0] - q[0])) - ((q[0] - p[0]) * (r[1] - q[1]))
+        if val == 0:
+            return 0
+        return 1 if val > 0 else -1
+
+    def do_intersects(self, p1, q1, p2, q2):
+        o1 = self.orientation(p1, q1, p2)
+        o2 = self.orientation(p1, q1, q2)
+        o3 = self.orientation(p2, q2, p1)
+        o4 = self.orientation(p2, q2, q1)
+        if o1 != o2 and o3 != o4:
+            return True
+        return False
+
+    def correct_mismatches(self, inner_points, outer_points):
+        for i in range(len(inner_points)):
+            p1 = inner_points[i]
+            q1 = outer_points[i]
             if i > 0:
-                pp = initial_points[i - 1]
+                p2 = inner_points[i - 1]
+                q2 = outer_points[i - 1]
             else:
-                pp = initial_points[-1]
-            x_vect = cp[0] - pp[0]
-            y_vect = cp[1] - pp[1]
-            modulo = np.float32(np.linalg.norm(cp - pp))
-            if modulo != 0:
-                ort_vector = [y_vect * track_width / modulo, - x_vect * track_width / modulo]
-            inner_points.append([cp[0] + ort_vector[0], cp[1] + ort_vector[1]])
-            outer_points.append([cp[0], cp[1]])
-        self.track_points = np.array([np.array(inner_points), np.array(outer_points)])
+                p2 = inner_points[-1]
+                q2 = outer_points[-1]
+            if self.do_intersects(p1, q1, p2, q2):
+                if i > 0:
+                    outer_points[i], outer_points[i - 1] = outer_points[i - 1], outer_points[i]
+                else:
+                    outer_points[0], outer_points[-1] = outer_points[-1], outer_points[0]
+        error_index = []
+        return [inner_points, outer_points]
