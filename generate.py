@@ -33,7 +33,7 @@ parser.add_argument("--cover", type=int, help="(bfs mode only) Percentage of the
 parser.add_argument("--span", type=int, help="(hull mode only) Percentage of the boundary area in which the hull is generated (default: 50).", default=50)
 parser.add_argument("-b", "--batch", help="Number of tracks to generate and save.\n " +
                     "The generated tracks will be stored in " + track_dir +" in numpy array format (default: disabled). ", default=0, type=int)
-parser.add_argument("--trackwidth", type=float, help="Track width factor (default: 0.7).", default=0.7)
+parser.add_argument("--trackwidth", type=float, help="Track width factor (default: 1.7).", default=1.7)
 
 args = parser.parse_args()
 
@@ -46,8 +46,8 @@ def error_printer(description):
 def domains_checker():
     if args.seed < 0:
         error_printer("seed must be greater than 0")
-    if args.trackwidth < 0.1 or args.trackwidth > 1.2:
-        error_printer("trackwidth must be between 0.1 and 1.2")
+    if args.trackwidth < 0.1 or args.trackwidth > 3.0:
+        error_printer("trackwidth must be between 0.1 and 3.0")
     if args.softness < 1 or args.softness > 100:
         error_printer("softness must be between 1 and 100")
     if args.npoints < 12:

@@ -23,7 +23,11 @@ def read_points(data):
 def plot(data, name, width):
     xi, yi, xo, yo = read_points(data)
     fig, axs = plt.subplots(1, 1, constrained_layout=True)
-    axs.plot(xi, yi, xo, yo, c="k", lw=width)
+    axs.plot(xi[1:], yi[1:], c="yellow", marker='.')
+    axs.plot(xo[1:], yo[1:], c="blue", marker='.')
+    #axs.plot(xi[1:], yi[1:], c="yellow", lw=width)
+    #axs.plot(xo[1:], yo[1:], c="blue", lw=width)
+    axs.plot(xi[0], yi[0], xo[0], yo[0], c="orange", marker='o')
     plt.gca().set_aspect('equal', adjustable='box')
     fig.suptitle("name: " + str(name))
     plt.show()
