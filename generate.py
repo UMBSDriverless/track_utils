@@ -34,6 +34,8 @@ parser.add_argument("--cover", type=int, help="(bfs mode only) Percentage of the
 parser.add_argument("--span", type=int, help="(hull mode only) Percentage of the boundary area in which the hull is generated (default: 50).", default=50)
 parser.add_argument("-b", "--batch", help="Number of tracks to generate and save.\n " +
                     "The generated tracks will be stored in " + track_dir +" in numpy array format (default: disabled). ", default=0, type=int)
+parser.add_argument("--trackwidth", type=float, help="Track width factor (default: 2.0).", default=2.0)
+
 
 args = parser.parse_args()
 
@@ -56,6 +58,8 @@ def domains_checker():
         error_printer("span must be between 1 and 100")
     if args.batch < 0:
         error_printer("batch must be greater than -1")
+    if args.trackwidth < 0.1 or args.trackwidth > 10.0:
+        error_printer("trackwidth must be between 0.1 and 10.0")
 
 
 domains_checker()
@@ -78,6 +82,7 @@ while i < args.batch:
             pass
     if args.verbose:
         print(Colors.INFO + "Generating track " + str(i + 1) + " with seed " + str(seed) + Colors.CLOSE)
+    track.offset_generator(args.trackwidth)
     try:
         os.mkdir(track_dir)
     except:

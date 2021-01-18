@@ -6,6 +6,9 @@ import matplotlib.pyplot as plt
 import json
 import time
 import sys
+import copy
+import pyclipper
+
 
 from src.voronoiTrack.generator.voronoi import *
 from src.voronoiTrack.generator.utils import *
@@ -19,6 +22,7 @@ class Track:
     # corners = dequeue of obj corner
 
     def __init__(self, boundary, npoints, seed, verbose=False, scale=BOUNDARY_DEFAULT_SCALE):
+        self.track_points = []
         self.straights = deque()
         self.corners = deque()
         self.seed = seed
@@ -236,8 +240,7 @@ class Track:
         #     f.write(str(self.seed))
         #     f.write("\n")
         #     f.write(str())
-        track_points = np.array(self._track2points())
-        np.save(filename, track_points)
+        np.save(filename, self.track_points, allow_pickle=True)
 
     def plot_track(self, width=4):
         plt.xlim(left=self.boundary._x_min(), right=self.boundary._x_max())
@@ -295,3 +298,13 @@ class Track:
         corner.arc_finish = T2
         corner.flagBlend()
         corner.roundify(v)
+
+    def offset_generator(self, track_width):
+        initial_points = list(np.array(self._track2points()))
+        pco = pyclipper.PyclipperOffset()
+        pco.AddPath(initial_points, pyclipper.JT_ROUND, pyclipper.ET_CLOSEDPOLYGON)
+        outer_points = np.array(pco.Execute(track_width)[0])
+        inner_points = np.array(initial_points)
+        print(outer_points.shape)
+        print(inner_points.shape)
+        self.track_points = np.array([inner_points, outer_points])
