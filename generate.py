@@ -6,8 +6,6 @@ import os
 from datetime import datetime
 from src.voronoiTrack.generator.track import *
 
-activate_visualize = True
-
 track_dir = "tracks/"
 
 
@@ -21,7 +19,8 @@ class Colors:
 description_str = "Procedural track generation using random Voronoi diagram."
 
 parser = argparse.ArgumentParser(description=description_str, formatter_class=argparse.RawTextHelpFormatter)
-parser.add_argument("-v", "--verbose", help="Set verbosity level.", action="count", default=0)
+parser.add_argument("-v", "--verbose", help="Set verbose.", default=False, action="store_true")
+parser.add_argument("-q", "--quiet", help="Quiet mode. Set to turn plotting off.", default=False, action="store_true")
 parser.add_argument("--boundary", help="Specify the x and y values of the track boundary (default: 100 100).", nargs=2, type=int, default=[100, 100])
 parser.add_argument("--npoints", type=int, help="The number of sites in the Voronoi diagram (points that generate the diagram) (default: 70).", default=70)
 parser.add_argument("--softness", type=int, help="Percentage indicating the average smoothness of the corners (default: 66)", default=66)
@@ -65,6 +64,8 @@ domains_checker()
 seed = args.seed
 i = -1
 while i < args.batch:
+    if args.verbose:
+        print(Colors.INFO + "Generating track " + str(i + 1) + " with seed " + str(seed) + Colors.CLOSE)
     track = Track(args.boundary, args.npoints, seed)  # 6928203095324602024
     if args.mode == "hull":
         perc = args.span / 100.
@@ -80,17 +81,13 @@ while i < args.batch:
             # temporary bad fix
             pass
     track.double_line(args.trackwidth)
-    if args.verbose:
-        print(Colors.INFO + "Generating track " + str(i + 1) + " with seed " + str(seed) + Colors.CLOSE)
     try:
         os.mkdir(track_dir)
     except:
-        print("Already existing a directory of name: " + track_dir)
+        print("A directory of name " + track_dir + " already exists")
     file_name = track_dir + "track_" + str(seed) + ".npy"
     track.store(file_name)
-    if activate_visualize:
-        os.system("visualize.py -t" + file_name)
+    if not args.quiet:
+        os.system("python visualize.py -t" + file_name)
     seed = random.randrange(sys.maxsize)
     i = i + 1
-
-

@@ -16,21 +16,23 @@ def contours(img):
     contours, _ = cv2.findContours(img, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
 
     outside = contours[0]
-    inside = contours[1]
 
     max_area = cv2.contourArea(outside)
-    min_area = cv2.contourArea(inside)
-
     for cont in contours:
         if cv2.contourArea(cont) > max_area:
             outside = cont
             max_area = cv2.contourArea(cont)
-        if cv2.contourArea(cont) > min_area:
+
+    min_area = max_area
+
+    inside = contours[0]
+    for cont in contours:
+        # 0.5 boundaries to avoid single pixel/very small contours
+        if cv2.contourArea(cont) < min_area and cv2.contourArea(cont) > 0.5 * max_area:
             inside = cont
             min_area = cv2.contourArea(cont)
     outside = np.squeeze(outside)
     inside = np.squeeze(inside)
-
     return outside, inside
 
 def middle_lane(outside, inside):
@@ -55,9 +57,9 @@ def middle_lane(outside, inside):
 
 def simplify(points, max_points):
     if(len(points) > max_points):
-        step = len(points) / ( len(points) - max_points)
-        # start removing from top to avoid out of ranges
-        to_remove = np.arange(0, len(points) - 1, step=round(step, 0), dtype=int)
-        to_remove = to_remove[::-1]
+        # generate enough non repeated numbers
+        to_remove = np.random.choice(len(points) - 1, size = len(points) - max_points, replace=False)
+        # remove from top to avoid out of rance
+        to_remove = -np.sort(-to_remove)
         points = np.delete(points, to_remove, 0)
     return points
