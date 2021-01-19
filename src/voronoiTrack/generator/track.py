@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 import json
 import time
 import sys
+import copy
 
 from src.voronoiTrack.generator.voronoi import *
 from src.voronoiTrack.generator.utils import *
@@ -324,8 +325,7 @@ class Track:
             if out_maxy > in_maxy:
                 break
             track_width = track_width * -1
-        self.track_points = np.array(self.correct_mismatches(np.array(inner_points), np.array(outer_points)))
-        #self.track_points = np.array([np.array(inner_points), np.array(outer_points)])
+        self.track_points = np.array(self.correct_mismatches(np.array(inner_points), np.array(outer_points), abs(track_width)))
 
     def orientation(self, p, q, r):
         val = ((q[1] - p[1]) * (r[0] - q[0])) - ((q[0] - p[0]) * (r[1] - q[1]))
@@ -342,20 +342,48 @@ class Track:
             return True
         return False
 
-    def correct_mismatches(self, inner_points, outer_points):
-        for i in range(len(inner_points)):
-            p1 = inner_points[i]
-            q1 = outer_points[i]
+    def correct_mismatches(self, in_points, out_points, track_width):
+        """"
+        for i in range(len(in_points)):
+            p1 = in_points[i]
+            q1 = out_points[i]
             if i > 0:
-                p2 = inner_points[i - 1]
-                q2 = outer_points[i - 1]
+                p2 = in_points[i - 1]
+                q2 = out_points[i - 1]
             else:
-                p2 = inner_points[-1]
-                q2 = outer_points[-1]
+                p2 = in_points[-1]
+                q2 = out_points[-1]
             if self.do_intersects(p1, q1, p2, q2):
                 if i > 0:
-                    outer_points[i], outer_points[i - 1] = outer_points[i - 1], outer_points[i]
+                    out_points[i], out_points[i - 1] = out_points[i - 1], out_points[i]
                 else:
-                    outer_points[0], outer_points[-1] = outer_points[-1], outer_points[0]
-        error_index = []
+                    out_points[0], out_points[-1] = out_points[-1], out_points[0]
+        # removing external points too close to the internal ones
+        """
+        error_count = 0
+        toll = track_width * 0.98
+        radius = 400
+        outer_points = []
+        for i in range(len(out_points)):
+            q = out_points[i]
+            miss_detect = False
+            for j in range(0, 2 * radius, 1):
+                p = in_points[(i + j - 1 - radius + len(in_points)) % len(in_points)]
+                if np.linalg.norm(q-p) < toll:
+                    miss_detect = True
+                    error_count += 1
+                    break
+            if not miss_detect:
+                outer_points.append(q)
+        # remove mis_count random points from the internal line
+        inner_points = []
+        for i in range(len(in_points) - error_count):
+            inner_points.append(in_points[i])
+        print(len(in_points))
+        print(len(out_points))
+        print(error_count)
+        inner_points = np.array(inner_points)
+        outer_points = np.array(outer_points)
+        print(inner_points.shape)
+        print(outer_points.shape)
         return [inner_points, outer_points]

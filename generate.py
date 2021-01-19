@@ -61,7 +61,8 @@ def domains_checker():
 
 
 domains_checker()
-seed = args.seed
+#seed = args.seed
+seed = 1106139599
 i = -1
 while i < args.batch:
     if args.verbose:
