@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 import json
 import time
 import sys
+import copy
 
 from src.voronoiTrack.generator.voronoi import *
 from src.voronoiTrack.generator.utils import *
@@ -19,6 +20,7 @@ class Track:
     # corners = dequeue of obj corner
 
     def __init__(self, boundary, npoints, seed, verbose=False, scale=BOUNDARY_DEFAULT_SCALE):
+        self.track_points = []
         self.straights = deque()
         self.corners = deque()
         self.seed = seed
@@ -236,8 +238,7 @@ class Track:
         #     f.write(str(self.seed))
         #     f.write("\n")
         #     f.write(str())
-        track_points = np.array(self._track2points())
-        np.save(filename, track_points)
+        np.save(filename, self.track_points)
 
     def plot_track(self, width=4):
         plt.xlim(left=self.boundary._x_min(), right=self.boundary._x_max())
@@ -295,3 +296,59 @@ class Track:
         corner.arc_finish = T2
         corner.flagBlend()
         corner.roundify(v)
+
+    def double_line(self, track_width):
+        # TODO make this code efficient
+        initial_points = np.array(self._track2points())
+        while True:
+            inner_points = []
+            outer_points = []
+            in_maxy = 0
+            out_maxy = 0
+            for i in range(len(initial_points)):
+                cp = initial_points[i]
+                if i > 0:
+                    pp = initial_points[i - 1]
+                else:
+                    pp = initial_points[-1]
+                x_vect = cp[0] - pp[0]
+                y_vect = cp[1] - pp[1]
+                modulo = np.linalg.norm(cp - pp)
+                if modulo != 0:
+                    ort_vector = [- y_vect * track_width / modulo, x_vect * track_width / modulo]
+                    outer_points.append([cp[0] + ort_vector[0], cp[1] + ort_vector[1]])
+                    if cp[1] + ort_vector[1] > out_maxy:
+                        out_maxy = cp[1] + ort_vector[1]
+                    inner_points.append([cp[0], cp[1]])
+                    if cp[1] > in_maxy:
+                        in_maxy = cp[1]
+            if out_maxy > in_maxy:
+                break
+            track_width = track_width * -1
+        self.track_points = np.array(self.correct_mismatches(np.array(inner_points), np.array(outer_points), abs(track_width)))
+
+    def correct_mismatches(self, in_points, out_points, track_width):
+        error_count = 0
+        toll = track_width * 0.98
+        radius = 300
+        outer_points = []
+        for i in range(len(out_points)):
+            q = out_points[i]
+            miss_detect = False
+            for j in range(0, 2 * radius, 1):
+                p = in_points[(i + j - 1 - radius + len(in_points)) % len(in_points)]
+                if np.linalg.norm(q-p) < toll:
+                    miss_detect = True
+                    error_count += 1
+                    break
+            if not miss_detect:
+                outer_points.append(q)
+        # remove error_count random points from the internal line
+        inner_points = []
+        removing_ind = np.random.default_rng().choice(len(in_points), size=error_count, replace=False)
+        for i in range(len(in_points)):
+            if i not in removing_ind:
+                inner_points.append(in_points[i])
+        print(len(outer_points))
+        print(len(inner_points))
+        return [np.array(inner_points), np.array(outer_points)]

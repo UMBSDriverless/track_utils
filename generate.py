@@ -6,8 +6,6 @@ import os
 from datetime import datetime
 from src.voronoiTrack.generator.track import *
 
-activate_visualize = True
-
 track_dir = "tracks/"
 
 
@@ -21,7 +19,8 @@ class Colors:
 description_str = "Procedural track generation using random Voronoi diagram."
 
 parser = argparse.ArgumentParser(description=description_str, formatter_class=argparse.RawTextHelpFormatter)
-parser.add_argument("-v", "--verbose", help="Set verbosity level.", action="count", default=0)
+parser.add_argument("-v", "--verbose", help="Set verbose.", default=False, action="store_true")
+parser.add_argument("-q", "--quiet", help="Quiet mode. Set to turn plotting off.", default=False, action="store_true")
 parser.add_argument("--boundary", help="Specify the x and y values of the track boundary (default: 100 100).", nargs=2, type=int, default=[100, 100])
 parser.add_argument("--npoints", type=int, help="The number of sites in the Voronoi diagram (points that generate the diagram) (default: 70).", default=70)
 parser.add_argument("--softness", type=int, help="Percentage indicating the average smoothness of the corners (default: 66)", default=66)
@@ -34,6 +33,7 @@ parser.add_argument("--cover", type=int, help="(bfs mode only) Percentage of the
 parser.add_argument("--span", type=int, help="(hull mode only) Percentage of the boundary area in which the hull is generated (default: 50).", default=50)
 parser.add_argument("-b", "--batch", help="Number of tracks to generate and save.\n " +
                     "The generated tracks will be stored in " + track_dir +" in numpy array format (default: disabled). ", default=0, type=int)
+parser.add_argument("--trackwidth", type=float, help="Track width factor (default: 4).", default=4.)
 
 args = parser.parse_args()
 
@@ -46,6 +46,8 @@ def error_printer(description):
 def domains_checker():
     if args.seed < 0:
         error_printer("seed must be greater than 0")
+    if args.trackwidth < 1 or args.trackwidth > 10:
+        error_printer("trackwidth must be between 1 and 10")
     if args.softness < 1 or args.softness > 100:
         error_printer("softness must be between 1 and 100")
     if args.npoints < 12:
@@ -60,8 +62,11 @@ def domains_checker():
 
 domains_checker()
 seed = args.seed
+# seed = 1106139599
 i = -1
 while i < args.batch:
+    if args.verbose:
+        print(Colors.INFO + "Generating track " + str(i + 1) + " with seed " + str(seed) + Colors.CLOSE)
     track = Track(args.boundary, args.npoints, seed)  # 6928203095324602024
     if args.mode == "hull":
         perc = args.span / 100.
@@ -76,17 +81,14 @@ while i < args.batch:
         except ValueError:
             # temporary bad fix
             pass
-    if args.verbose:
-        print(Colors.INFO + "Generating track " + str(i + 1) + " with seed " + str(seed) + Colors.CLOSE)
+    track.double_line(args.trackwidth)
     try:
         os.mkdir(track_dir)
     except:
-        print("Error occurred during creation of directory " + track_dir)
+        print("A directory of name " + track_dir + " already exists")
     file_name = track_dir + "track_" + str(seed) + ".npy"
     track.store(file_name)
-    if activate_visualize:
-        os.system("visualize.py -t" + file_name)
+    if not args.quiet:
+        os.system("python visualize.py -t" + file_name)
     seed = random.randrange(sys.maxsize)
     i = i + 1
-
-
