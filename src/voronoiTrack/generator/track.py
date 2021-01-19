@@ -327,42 +327,10 @@ class Track:
             track_width = track_width * -1
         self.track_points = np.array(self.correct_mismatches(np.array(inner_points), np.array(outer_points), abs(track_width)))
 
-    def orientation(self, p, q, r):
-        val = ((q[1] - p[1]) * (r[0] - q[0])) - ((q[0] - p[0]) * (r[1] - q[1]))
-        if val == 0:
-            return 0
-        return 1 if val > 0 else -1
-
-    def do_intersects(self, p1, q1, p2, q2):
-        o1 = self.orientation(p1, q1, p2)
-        o2 = self.orientation(p1, q1, q2)
-        o3 = self.orientation(p2, q2, p1)
-        o4 = self.orientation(p2, q2, q1)
-        if o1 != o2 and o3 != o4:
-            return True
-        return False
-
     def correct_mismatches(self, in_points, out_points, track_width):
-        """"
-        for i in range(len(in_points)):
-            p1 = in_points[i]
-            q1 = out_points[i]
-            if i > 0:
-                p2 = in_points[i - 1]
-                q2 = out_points[i - 1]
-            else:
-                p2 = in_points[-1]
-                q2 = out_points[-1]
-            if self.do_intersects(p1, q1, p2, q2):
-                if i > 0:
-                    out_points[i], out_points[i - 1] = out_points[i - 1], out_points[i]
-                else:
-                    out_points[0], out_points[-1] = out_points[-1], out_points[0]
-        # removing external points too close to the internal ones
-        """
         error_count = 0
         toll = track_width * 0.98
-        radius = 400
+        radius = 300
         outer_points = []
         for i in range(len(out_points)):
             q = out_points[i]
@@ -375,15 +343,12 @@ class Track:
                     break
             if not miss_detect:
                 outer_points.append(q)
-        # remove mis_count random points from the internal line
+        # remove error_count random points from the internal line
         inner_points = []
-        for i in range(len(in_points) - error_count):
-            inner_points.append(in_points[i])
-        print(len(in_points))
-        print(len(out_points))
-        print(error_count)
-        inner_points = np.array(inner_points)
-        outer_points = np.array(outer_points)
-        print(inner_points.shape)
-        print(outer_points.shape)
-        return [inner_points, outer_points]
+        removing_ind = np.random.default_rng().choice(len(in_points), size=error_count, replace=False)
+        for i in range(len(in_points)):
+            if i not in removing_ind:
+                inner_points.append(in_points[i])
+        print(len(outer_points))
+        print(len(inner_points))
+        return [np.array(inner_points), np.array(outer_points)]
