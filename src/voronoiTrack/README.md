@@ -38,5 +38,8 @@ Input variables: cover: percentage of the total area to be covered.
 The Voronoi diagram can be seen as an wheighted undirected graph, where the cells are nodes with area as weight and shared edges as connections. Starting from a random node, we explore the graph marking every new node, until we reach the "cover" percentage of area.
 #### Hull:
 Input variables: span: percentage of the boundary where the hull is generated.
+### offset generator:
+Method double_line() generates the outer line. For each point, the vector to the next point is found and then is computed the perpendicular vector and rescaled as the track_width. 
+
 
 A more geometric view is to take a random convex hull (inside the "span" boundary) and mark as selected all the cells that have at least one vertex inside the hull.
