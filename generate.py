@@ -3,7 +3,6 @@ import sys
 import random
 import os
 
-from datetime import datetime
 from src.voronoiTrack.generator.track import *
 
 track_dir = "tracks/"
